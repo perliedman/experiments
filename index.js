@@ -22,22 +22,33 @@ for (var i = 0; i < 800; i++) {
 
 var delaunay = new Delaunator(points)
 var triangles = delaunay.triangles
+var sx = Math.PI / canvas.width*1
+var sy = Math.PI / canvas.height
+var ox = -canvas.width * 2
+var oy = canvas.height * 1.5
 
 function up () {
-  var t = +new Date() / 3000
-  var dx = 220 * Math.sin(t)
-  var dy = 220 * Math.cos(t)
+  var t = +new Date() / 2000
+  var dx = (canvas.width * 0.25) * Math.sin(t*0.233)
+  var dy = (canvas.width * 0.25) * Math.cos(t)
+  var r = Math.PI/4 * Math.cos(t*0.067)
 
   for (i = 0; i < triangles.length; i += 3) {
     var cx =
       (points[triangles[i]][0] +
       points[triangles[i + 1]][0] +
-      points[triangles[i + 2]][0]) / 3
+      points[triangles[i + 2]][0]) / 3 + dx
     var cy =
       (points[triangles[i]][1] +
       points[triangles[i + 1]][1] +
-      points[triangles[i + 2]][1]) / 3
-    var rgba = sky.sky(cx + dx, cy + dy)
+      points[triangles[i + 2]][1]) / 3 + dy
+    var x = (cx + ox) * sx
+    var y = (-cy - oy) * sy
+
+    var azimuth = x * Math.cos(r) + y * Math.sin(r)
+    var zenith = x * Math.sin(r) - y * Math.cos(r)
+
+    var rgba = sky.sky(azimuth, zenith)
     rgba.forEach(function(v, i) {rgba[i] = Math.round(v * 255)})
 
     context.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]})`

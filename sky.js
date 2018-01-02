@@ -90,9 +90,7 @@ Sky.prototype = {
     return Math.acos(Math.sin(solarZenith)*Math.sin(zenith)*Math.cos(azimuth-this.solarAzimuth)+Math.cos(solarZenith)*Math.cos(zenith))
   },
 
-  sky: function (x, y) {
-    var azimuth = Math.acos(Math.cos(x / 700))+Math.PI*0.24;
-    var zenith = Math.asin(Math.sin(y / 800))+Math.PI*0.34;
+  sky: function (azimuth, zenith) {
     var solarZenith = this.solarZenith;
 
     var g = this.gamma(zenith, azimuth);
