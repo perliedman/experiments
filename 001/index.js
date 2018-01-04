@@ -25,7 +25,7 @@ function up() {
   document.getElementById('info').innerText = 'z = ' + solarZenith.toFixed(3)
 
   var f = function (x, y) {
-    return sky.sky((x + ox) * sx, Math.max(-Math.PI*0.5, (-y - oy) * sy + Math.PI/3))
+    return sky.rgba((x + ox) * sx, Math.max(-Math.PI*0.5, (-y - oy) * sy + Math.PI/3))
   }
 
   update(f)

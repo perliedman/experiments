@@ -55,7 +55,7 @@ function up () {
     var azimuth = x * Math.cos(r) + y * Math.sin(r)
     var zenith = x * Math.sin(r) - y * Math.cos(r)
 
-    var rgba = sky.sky(azimuth, Math.max(-0.5*Math.PI, zenith))
+    var rgba = sky.rgba(azimuth, Math.max(-0.5*Math.PI, zenith))
     rgba.forEach(function(v, i) {rgba[i] = Math.round(v * 255)})
 
     context.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]})`
