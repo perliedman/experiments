@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "delaunator": "^1.0.5"
+    "delaunator": "^1.0.5",
+    "marchingsquares": "^1.2.0",
+    "simplify-js": "^1.2.3"
   }
 }
