@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "d3": "^4.2.0",
     "delaunator": "^1.0.5",
+    "js-priority-queue": "^0.1.5",
     "marchingsquares": "^1.2.0",
     "simplify-js": "^1.2.3"
   }
