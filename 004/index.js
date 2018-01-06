@@ -1,6 +1,7 @@
 var {makeTerrain, contour} = require('../lib/mewo2-terrain')
 var marchingsquares = require('marchingsquares')
 var simplify = require('simplify-js')
+var spline = require('../lib/spline')
 var createLink = require('../lib/save-canvas-link')
 
 var terrain = makeTerrain()
@@ -96,25 +97,7 @@ for (var lowerBand = floor; lowerBand < minMax.max + bandWidth; lowerBand += ban
 function drawRings (rings, options) {
   rings.forEach(band => {
     var points = band.map(c => ({x: c[0], y: c[1]}))
-    var sPoints = simplify(points, 2)
-
-    context.beginPath()
-    context.moveTo(sPoints[0].x, sPoints[0].y)
-    for (var i = 1; i < sPoints.length; i++) {
-      var coord = sPoints[i]
-      context.lineTo(coord.x, coord.y)
-    }
-
-    if (options.close) {      
-      context.closePath()
-    }
-
-    if (options.fill) {      
-      context.fill()
-    }
-
-    if (options.stroke) {      
-      context.stroke()
-    }
+    var sPoints = simplify(points, 1.5)
+    spline(context, sPoints, 0.3, options)
   })
 }
