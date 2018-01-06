@@ -90,6 +90,7 @@ for (var lowerBand = floor; lowerBand < minMax.max; lowerBand += bandWidth) {
   drawRings(marchingsquares.isoBands(heightMap, lowerBand, bandWidth), {close: true, fill: true})
 }
 
+context.lineWidth = 0.67
 for (var lowerBand = floor; lowerBand < minMax.max + bandWidth; lowerBand += bandWidth) {
   drawRings(marchingsquares.isoContours(heightMap, lowerBand), {stroke: true})
 }
