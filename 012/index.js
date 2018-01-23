@@ -40,7 +40,30 @@ const trinormal = function(map, tri) {
   return cross(normalize(v1), normalize(v2))
 }
 
-const hillShade = function hillShade (terrain, size) {
+const loadEnvironmentMap = function(url) {
+  return new Promise(function (resolve, reject) {
+    var img = new Image()
+    img.src = url
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      canvas.width = img.width
+      canvas.height = img.height
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      img.style.display = 'none';
+      var data = ctx.getImageData(0, 0, img.width, img.height).data;
+      resolve(function(x, y) {
+        x = Math.round((x + 1) * 0.5 * img.width)
+        y = Math.round((y + 1) * 0.5 * img.height)
+        var offset = (y * img.width + x) * 4
+
+        return `rgba(${data[offset + 0]},${data[offset + 1]},${data[offset + 2]},${data[offset + 3]/255})`
+      })
+    };
+  });
+}
+
+const hillShade = function hillShade (terrain, size, getEnv) {
   var minMax = terrain.reduce((a, row) => 
     row.reduce((a, cell) => 
       ({min: Math.min(a.min, cell), max: Math.max(a.max, cell)}),
@@ -48,7 +71,7 @@ const hillShade = function hillShade (terrain, size) {
     )
   var heightScale = 255 / (minMax.max - minMax.min)
 
-  var l = normalize([-1, -1, 1])
+  var l = normalize([0, 0, 1])
   var canvas
   var context
 
@@ -61,7 +84,9 @@ const hillShade = function hillShade (terrain, size) {
     var s = trinormal(terrain, tri)
     var d = dot(normalize(s), l)
     var col = Math.max(0, d)
-    return `rgb(${col*255}, ${col*col*192}, ${col*col*col*192})`
+    return `rgb(${col*col*255}, ${col*col*255}, ${col*col*255})`
+    //return `rgb(${s[0]*127+128}, ${s[1]*127+128}, ${s[2]*127+128})`
+    //return getEnv(s[0], s[1])
   })
 
   canvas = document.createElement('canvas')
@@ -84,4 +109,7 @@ const hillShade = function hillShade (terrain, size) {
 var size = 512
 var terrain = makeTerrain()
 var heightMap = createHeightMap(terrain, size)
-hillShade(heightMap, size)
+loadEnvironmentMap('imhof5.jpg')
+  .then(function(getEnv) {
+    hillShade(heightMap, size, getEnv)
+  })
