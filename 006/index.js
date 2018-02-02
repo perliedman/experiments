@@ -1,6 +1,6 @@
 var txtgen = require('txtgen')
 var createLink = require('../lib/save-canvas-link')
-var vintagejs = require('vintagejs')
+// var vintagejs = require('vintagejs')
 var flatten = as => [].concat.apply([], as)
 
 function wordWrap(ctx, text, maxWidth, scale, lineWidth) {
@@ -103,7 +103,7 @@ for (var i = 0; i < lines.length; i++) {
   if (y > width - margin) break
 }
 
-vintagejs(canvas, { brightness: 0.2 })
-  .then(res => {
-    context.drawImage(res.getCanvas(), 0, 0, canvas.width, canvas.height);
-  });
+// vintagejs(canvas, { brightness: 0.2 })
+//   .then(res => {
+//     context.drawImage(res.getCanvas(), 0, 0, canvas.width, canvas.height);
+//   });

@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "node ./scripts/build.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -21,5 +22,8 @@
     "simplify-js": "^1.2.3",
     "three": "^0.89.0",
     "txtgen": "^2.0.1"
+  },
+  "devDependencies": {
+    "browserify": "^15.2.0"
   }
 }
