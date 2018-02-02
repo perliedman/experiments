@@ -7,8 +7,8 @@ const point = require('@turf/helpers').point
 const Delaunator = require('delaunator')
 const createLink = require('../lib/save-canvas-link')
 
-const width = 512
-const height = 768
+const height = Math.min(768, window.innerHeight)
+const width = height * 0.67
 const canvas = document.createElement('canvas')
 canvas.width = width
 canvas.height = height
@@ -19,12 +19,14 @@ saveLink.id = 'save'
 saveLink.innerText = 'Save'
 document.body.appendChild(saveLink)
 
+context.fillStyle = 'white'
+context.fillRect(0, 0, width, height)
+
 const proj = proj4('+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs') 
 const cx = 603739
 const cy = 6901148
-const scale = 5e-4
+const scale = height * 7e-7
 const threshold = 10
-debugger
 stations = stations.filter(s => inside(point([s.Longitud, s.Latitud]), borders)).map(s => {
   const p = proj.forward([s.Longitud, s.Latitud])
   return Object.assign({

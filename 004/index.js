@@ -5,7 +5,7 @@ var spline = require('../lib/spline')
 var createLink = require('../lib/save-canvas-link')
 
 var terrain = makeTerrain()
-var size = 512
+var size = Math.min(512, window.innerHeight)
 var scaleCoord = c => (c+0.5)*size
 
 function createHeightMap(terrain) {

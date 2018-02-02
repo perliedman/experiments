@@ -1,4 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var insertCss = require('insert-css')
 var Sky = require('../lib/sky')
 
 function curves(canvas) {
@@ -25,7 +26,6 @@ function skyCanvas(width, turbidity) {
   canvas.width = width
   canvas.height = width
   var context = canvas.getContext('2d')
-  document.body.appendChild(canvas)
   var imageData = context.createImageData(canvas.width, canvas.height)
 
   var sky = new Sky(turbidity, 1.45, Math.PI/2)
@@ -46,11 +46,29 @@ function skyCanvas(width, turbidity) {
   return canvas
 }
 
-for (var i = 1; i < 10; i++) {
-  skyCanvas(128, i*2+1)
+insertCss(`body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-flow: column wrap;
+  align-content: stretch;
 }
 
-},{"../lib/sky":2}],2:[function(require,module,exports){
+canvas {
+  margin: 0.5em;
+}`)
+
+var container
+for (var i = 0; i < 9; i++) {
+  var canvas = skyCanvas(128, (i + 1)*2+1)
+  if (i % 3 === 0) {
+    container = document.createElement('div')    
+    document.body.appendChild(container)
+  }
+  container.appendChild(canvas)
+}
+
+},{"../lib/sky":2,"insert-css":3}],2:[function(require,module,exports){
 /*
   This is more or less a straight port of the codeb by
   Nico Schertler found on
@@ -187,5 +205,65 @@ function dot(v1, v2) {
 function mul(mat, v) {
   return mat.map(function (r) { return dot(r, v) })
 }
+
+},{}],3:[function(require,module,exports){
+var containers = []; // will store container HTMLElement references
+var styleElements = []; // will store {prepend: HTMLElement, append: HTMLElement}
+
+var usage = 'insert-css: You need to provide a CSS string. Usage: insertCss(cssString[, options]).';
+
+function insertCss(css, options) {
+    options = options || {};
+
+    if (css === undefined) {
+        throw new Error(usage);
+    }
+
+    var position = options.prepend === true ? 'prepend' : 'append';
+    var container = options.container !== undefined ? options.container : document.querySelector('head');
+    var containerId = containers.indexOf(container);
+
+    // first time we see this container, create the necessary entries
+    if (containerId === -1) {
+        containerId = containers.push(container) - 1;
+        styleElements[containerId] = {};
+    }
+
+    // try to get the correponding container + position styleElement, create it otherwise
+    var styleElement;
+
+    if (styleElements[containerId] !== undefined && styleElements[containerId][position] !== undefined) {
+        styleElement = styleElements[containerId][position];
+    } else {
+        styleElement = styleElements[containerId][position] = createStyleElement();
+
+        if (position === 'prepend') {
+            container.insertBefore(styleElement, container.childNodes[0]);
+        } else {
+            container.appendChild(styleElement);
+        }
+    }
+
+    // strip potential UTF-8 BOM if css was read from a file
+    if (css.charCodeAt(0) === 0xFEFF) { css = css.substr(1, css.length); }
+
+    // actually add the stylesheet
+    if (styleElement.styleSheet) {
+        styleElement.styleSheet.cssText += css
+    } else {
+        styleElement.textContent += css;
+    }
+
+    return styleElement;
+};
+
+function createStyleElement() {
+    var styleElement = document.createElement('style');
+    styleElement.setAttribute('type', 'text/css');
+    return styleElement;
+}
+
+module.exports = insertCss;
+module.exports.insertCss = insertCss;
 
 },{}]},{},[1]);

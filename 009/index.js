@@ -6,8 +6,8 @@ const GlitchPass = postprocessing.GlitchPass
 // const fragmentShader = require('./glitch-shader')
 
 // Set the scene size.
-const WIDTH = 1200;
-const HEIGHT = 800;
+const WIDTH = window.innerWidth;
+const HEIGHT = window.innerHeight;
 
 // Set some camera attributes.
 const VIEW_ANGLE = 45;
