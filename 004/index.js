@@ -3,51 +3,11 @@ var marchingsquares = require('marchingsquares')
 var simplify = require('simplify-js')
 var spline = require('../lib/spline')
 var createLink = require('../lib/save-canvas-link')
+var createHeightMap = require('../lib/height-map').createHeightMap
 
 var terrain = makeTerrain()
 var size = Math.min(512, window.innerHeight)
 var scaleCoord = c => (c+0.5)*size
-
-function createHeightMap(terrain) {
-  var canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  document.body.appendChild(canvas)
-  var context = canvas.getContext('2d')
-
-  var minMax = terrain.h.reduce((a, cell) => 
-      ({min: Math.min(a.min, cell), max: Math.max(a.max, cell)}),
-      {min: Number.MAX_VALUE, max: Number.MIN_VALUE})
-  var heightScale = 255 / (minMax.max - minMax.min)
-
-
-  terrain.h.mesh.tris.forEach((tri, i) => {
-    var h = terrain.h[i]
-    var col = Math.round((h - minMax.min) * heightScale)
-    context.strokeStyle = context.fillStyle = `rgb(${col}, ${col}, ${col})`
-    context.beginPath()
-    context.moveTo(scaleCoord(tri[0][0]), scaleCoord(tri[0][1]))
-    for (var i = 1; i < tri.length; i++) {
-      context.lineTo(scaleCoord(tri[i][0]), scaleCoord(tri[i][1]))
-    }
-    context.closePath()
-    context.stroke()
-    context.fill()
-  })
-
-  var data = context.getImageData(0, 0, canvas.width, canvas.height).data
-  var heightMap = new Array(canvas.height)
-  for (var y = 0; y < canvas.height; y++) {
-    heightMap[y] = new Array(canvas.width)
-    for (var x = 0; x < canvas.width; x++) {
-      heightMap[y][x] = data[(canvas.width*y + x)*4]
-    }
-  }
-
-  document.body.removeChild(canvas)
-
-  return heightMap
-}
 
 var colors = [
   '#d73027',
@@ -61,7 +21,7 @@ var colors = [
   '#4575b4',
 ]
 colors = colors.reverse()
-var heightMap = createHeightMap(terrain)
+var heightMap = createHeightMap(terrain, size)
 var scale = 1
 var canvas = document.createElement('canvas')
 canvas.width = size
