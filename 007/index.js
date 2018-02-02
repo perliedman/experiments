@@ -1,3 +1,4 @@
+var insertCss = require('insert-css')
 var Sky = require('../lib/sky')
 
 function curves(canvas) {
@@ -24,7 +25,6 @@ function skyCanvas(width, turbidity) {
   canvas.width = width
   canvas.height = width
   var context = canvas.getContext('2d')
-  document.body.appendChild(canvas)
   var imageData = context.createImageData(canvas.width, canvas.height)
 
   var sky = new Sky(turbidity, 1.45, Math.PI/2)
@@ -45,6 +45,24 @@ function skyCanvas(width, turbidity) {
   return canvas
 }
 
-for (var i = 1; i < 10; i++) {
-  skyCanvas(128, i*2+1)
+insertCss(`body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-flow: column wrap;
+  align-content: stretch;
+}
+
+canvas {
+  margin: 0.5em;
+}`)
+
+var container
+for (var i = 0; i < 9; i++) {
+  var canvas = skyCanvas(128, (i + 1)*2+1)
+  if (i % 3 === 0) {
+    container = document.createElement('div')    
+    document.body.appendChild(container)
+  }
+  container.appendChild(canvas)
 }

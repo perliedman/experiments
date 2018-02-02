@@ -82,7 +82,7 @@
       numberLink.href = s + '/built.html'
       numberLink.innerText = s
 
-      document.querySelector('#info').innerText = window.descriptions[i].title
+      document.querySelector('#info').innerText = window.descriptions[i - 1].title
     }
 
     function changeExperiment(delta) {

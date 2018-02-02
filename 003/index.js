@@ -24,10 +24,11 @@ var minMax = terrain.map.reduce((a, row) =>
     {min: Number.MAX_VALUE, max: Number.MIN_VALUE})
   )
 
-var scale = 1
 var canvas = document.createElement('canvas')
-canvas.width = terrain.size * scale
-canvas.height = terrain.size * scale
+var size = Math.min(window.innerWidth, window.innerHeight, 512)
+canvas.width = size
+canvas.height = size
+var scale = size / terrain.size
 var context = canvas.getContext('2d')
 document.body.appendChild(canvas)
 var saveLink = createLink(canvas, 'topo.png')
