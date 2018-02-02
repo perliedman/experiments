@@ -10,10 +10,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@turf/boolean-point-in-polygon": "^5.1.5",
+    "@turf/helpers": "^6.0.0-beta.3",
     "d3": "^4.2.0",
     "delaunator": "^1.0.5",
     "js-priority-queue": "^0.1.5",
     "marchingsquares": "^1.2.0",
-    "simplify-js": "^1.2.3"
+    "postprocessing": "^4.1.0",
+    "proj4": "^2.4.4",
+    "simplify-js": "^1.2.3",
+    "three": "^0.89.0",
+    "txtgen": "^2.0.1"
   }
 }

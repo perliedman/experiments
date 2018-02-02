@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Experiments</title>
+  <style type="text/css">
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: calc(100% - 4.2em);
+      border: 8px solid black;
+      overflow: hidden;
+    }
+
+    nav {
+      width: 100%;
+      text-align: center;
+      font-size: 2.4em;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+    }
+
+    #info {
+      font-family: serif;
+      font-style: italic;
+      text-align: center;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <iframe></iframe>
+  <nav>
+    <a id="prev" href="#" title="Previous">&laquo;</a>
+    <a href="" id="number"></a>
+    <a id="next" href="#" title="Next">&raquo;</a>
+  </nav>
+  <div id="info"></div>
+
+  <script type="text/javascript" src="index.js"></script>
+  <script type="text/javascript">
+    var hashPattern = /#([0-9]+)/g
+
+    var index = 1
+
+    var indexMatch = hashPattern.exec(window.location.hash)
+    if (indexMatch) {
+      index = Number(indexMatch[1])
+    }
+
+    showExperiment(index)
+
+    document.querySelector('#prev').addEventListener('click', changeExperiment(-1))
+    document.querySelector('#next').addEventListener('click', changeExperiment(1))
+
+    function showExperiment(i) {
+      var iframe = document.querySelector('iframe')
+      var lpad = function(i, w) {
+        while (i.length < w) {
+          i = '0' + i
+        }
+        return i
+      }
+
+      var s = lpad(i.toString(), 3)
+      iframe.src = s + '/built.html'
+      window.location.hash = "#" + s
+      var numberLink = document.querySelector('#number')
+      numberLink.href = s + '/built.html'
+      numberLink.innerText = s
+
+      document.querySelector('#info').innerText = window.descriptions[i].title
+    }
+
+    function changeExperiment(delta) {
+      return function(e) {
+        index += delta
+        showExperiment(index)
+        e.preventDefault()
+      }
+    }
+  </script>
+</body>
+</html>
