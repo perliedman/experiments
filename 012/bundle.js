@@ -1,15 +1,140 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var {makeTerrain, contour} = require('../lib/mewo2-terrain')
+var {makeTerrain} = require('../lib/mewo2-terrain')
 var marchingsquares = require('marchingsquares')
-var simplify = require('simplify-js')
-var spline = require('../lib/spline')
 var createLink = require('../lib/save-canvas-link')
+var createHeightMap = require('../lib/height-map').createHeightMap
+var {normalize, dot, cross} = require('../lib/vec')
 
+const renderTris = function(context, terrain, size, colFn) {
+  const scaleCoord = x => x
+  function triangle(tri) {
+    context.strokeStyle = context.fillStyle = colFn(terrain, tri)
+    context.beginPath()
+    context.moveTo(scaleCoord(tri[0][0]), scaleCoord(tri[0][1]))
+    context.lineTo(scaleCoord(tri[1][0]), scaleCoord(tri[1][1]))
+    context.lineTo(scaleCoord(tri[2][0]), scaleCoord(tri[2][1]))
+    context.closePath()
+    context.stroke()
+    context.fill()
+  }
+
+  for (var y = 0; y < size - 1; y++) {
+    for (var x = 0; x < size - 1; x++) {
+      triangle([[x, y], [x + 1, y], [x, y + 1]])
+      triangle([[x + 1, y], [x + 1, y + 1], [x, y + 1]])
+    }
+  }
+}
+
+const trinormal = function(map, tri) {
+  var v1 = [
+    tri[1][0] - tri[0][0],
+    tri[1][1] - tri[0][1],
+    (map[tri[1][0]][tri[1][1]] - map[tri[0][0]][tri[0][1]])
+  ]
+  var v2 = [
+    tri[2][0] - tri[0][0],
+    tri[2][1] - tri[0][1],
+    (map[tri[2][0]][tri[2][1]] - map[tri[0][0]][tri[0][1]])
+  ]
+
+  return cross(normalize(v1), normalize(v2))
+}
+
+const loadEnvironmentMap = function(url) {
+  return new Promise(function (resolve, reject) {
+    var img = new Image()
+    img.src = url
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      canvas.width = img.width
+      canvas.height = img.height
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      img.style.display = 'none';
+      var data = ctx.getImageData(0, 0, img.width, img.height).data;
+      resolve(function(x, y) {
+        x = Math.round((x + 1) * 0.5 * img.width)
+        y = Math.round((y + 1) * 0.5 * img.height)
+        var offset = (y * img.width + x) * 4
+
+        return `rgba(${data[offset + 0]},${data[offset + 1]},${data[offset + 2]},${data[offset + 3]/255})`
+      })
+    };
+  });
+}
+
+const hillShade = function hillShade (terrain, size, getEnv) {
+  var minMax = terrain.reduce((a, row) => 
+    row.reduce((a, cell) => 
+      ({min: Math.min(a.min, cell), max: Math.max(a.max, cell)}),
+      {min: Number.MAX_VALUE, max: Number.MIN_VALUE})
+    )
+  var heightScale = 255 / (minMax.max - minMax.min)
+
+  var l = normalize([0, 0, 1])
+  var canvas
+  var context
+
+  canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  document.body.appendChild(canvas)
+  context = canvas.getContext('2d')
+  renderTris(context, terrain, size, (terrain, tri) => {
+    var s = trinormal(terrain, tri)
+    var d = dot(normalize(s), l)
+    var col = Math.max(0, d)
+    return `rgb(${col*col*255}, ${col*col*255}, ${col*col*255})`
+    //return `rgb(${s[0]*127+128}, ${s[1]*127+128}, ${s[2]*127+128})`
+    //return getEnv(s[0], s[1])
+  })
+
+  canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  document.body.appendChild(canvas)
+  context = canvas.getContext('2d')
+  renderTris(context, terrain, size, (terrain, tri) => {
+    var avg = 
+      (terrain[tri[0][0]][tri[0][1]] +
+      terrain[tri[1][0]][tri[1][1]] +
+      terrain[tri[2][0]][tri[2][1]]) / 3
+    var col = Math.round((avg - minMax.min) * heightScale)
+    return `rgb(${col}, ${col}, ${col})`
+  })
+
+  return canvas
+}
+
+var size = 512
 var terrain = makeTerrain()
-var size = Math.min(512, window.innerHeight)
-var scaleCoord = c => (c+0.5)*size
+var heightMap = createHeightMap(terrain, size)
+loadEnvironmentMap('imhof5.jpg')
+  .then(function(getEnv) {
+    hillShade(heightMap, size, getEnv)
+  })
 
-function createHeightMap(terrain) {
+},{"../lib/height-map":2,"../lib/mewo2-terrain":3,"../lib/save-canvas-link":4,"../lib/vec":5,"marchingsquares":9}],2:[function(require,module,exports){
+const createHeightMap = function createHeightMap (terrain, size) {
+  var canvas = renderHeightMap(terrain, size)
+  var context = canvas.getContext('2d')
+  var data = context.getImageData(0, 0, canvas.width, canvas.height).data
+  var heightMap = new Array(canvas.height)
+  for (var y = 0; y < canvas.height; y++) {
+    heightMap[y] = new Array(canvas.width)
+    for (var x = 0; x < canvas.width; x++) {
+      heightMap[y][x] = data[(canvas.width*y + x)*4]
+    }
+  }
+
+  document.body.removeChild(canvas)
+
+  return heightMap
+}
+
+const renderHeightMap = function renderHeightMap (terrain, size) {
+  const scaleCoord = c => (c+0.5)*size
   var canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
@@ -36,66 +161,15 @@ function createHeightMap(terrain) {
     context.fill()
   })
 
-  var data = context.getImageData(0, 0, canvas.width, canvas.height).data
-  var heightMap = new Array(canvas.height)
-  for (var y = 0; y < canvas.height; y++) {
-    heightMap[y] = new Array(canvas.width)
-    for (var x = 0; x < canvas.width; x++) {
-      heightMap[y][x] = data[(canvas.width*y + x)*4]
-    }
-  }
-
-  document.body.removeChild(canvas)
-
-  return heightMap
+  return canvas
 }
 
-var heightMap = createHeightMap(terrain)
-var scale = 1
-var canvas = document.createElement('canvas')
-canvas.width = size
-canvas.height = size
-var context = canvas.getContext('2d')
-document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'topo.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
-
-context.fillStyle = 'white'
-context.fillRect(0, 0, size, size)
-
-var minMax = heightMap.reduce((a, row) => 
-  row.reduce((a, cell) => 
-    ({min: Math.min(a.min, cell), max: Math.max(a.max, cell)}),
-    {min: Number.MAX_VALUE, max: Number.MIN_VALUE})
-  )
-var bandWidth = (minMax.max - minMax.min) / 10
-var floor = minMax.min
-
-context.lineWidth = 0.67
-context.strokeStyle = '#BE7B54'
-for (var lowerBand = floor; lowerBand < minMax.max + bandWidth; lowerBand += bandWidth) {
-  drawRings(marchingsquares.isoContours(heightMap, lowerBand), {stroke: true})
+module.exports = {
+  createHeightMap,
+  renderHeightMap
 }
 
-context.lineWidth = 1
-context.strokeStyle = '#00A3E0'
-terrain.rivers.forEach(river => {
-  var points = river.map(c => ({x: scaleCoord(c[0]), y: scaleCoord(c[1])}))
-  var sPoints = simplify(points, 2)
-  spline(context, sPoints, 0.5, {stroke: true})
-})
-
-function drawRings (rings, options) {
-  rings.forEach(band => {
-    var points = band.map(c => ({x: c[0], y: c[1]}))
-    var sPoints = simplify(points, 2)
-    spline(context, sPoints, 0.5, options)
-  })
-}
-
-},{"../lib/mewo2-terrain":2,"../lib/save-canvas-link":3,"../lib/spline":4,"marchingsquares":8,"simplify-js":9}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /*
     Modified copy of terrain.js from Martin O'Leary's fantastic 
     terrain repo (https://github.com/mewo2/terrain)
@@ -741,7 +815,7 @@ var defaultParams = {
 }
 
 
-},{"d3":5}],3:[function(require,module,exports){
+},{"d3":6}],4:[function(require,module,exports){
 module.exports = function (canvas, name) {
   var link = document.createElement('a')
   link.href = '#'
@@ -754,92 +828,31 @@ module.exports = function (canvas, name) {
   return link
 }
 
-},{}],4:[function(require,module,exports){
-/*
-    Copied from http://scaledinnovation.com/analytics/splines/aboutSplines.html
-*/
-
-module.exports = function drawSpline(ctx,pts,t,options) {
-    var closed = options.close
-    pts = [].concat.apply([], pts.map(p => [p.x, p.y]))
-
-    var cp=[];   // array of control points, as x0,y0,x1,y1,...
-    var n=pts.length;
-
-    if(closed){
-        //   Append and prepend knots and control points to close the curve
-        pts.push(pts[0],pts[1],pts[2],pts[3]);
-        pts.unshift(pts[n-1]);
-        pts.unshift(pts[n-1]);
-        for(var i=0;i<n;i+=2){
-            cp=cp.concat(getControlPoints(pts[i],pts[i+1],pts[i+2],pts[i+3],pts[i+4],pts[i+5],t));
-        }
-        cp=cp.concat(cp[0],cp[1]);   
-
-        ctx.beginPath()
-        ctx.moveTo(pts[2],pts[3]);
-        for(var i=2;i<n+2;i+=2){
-            ctx.bezierCurveTo(cp[2*i-2],cp[2*i-1],cp[2*i],cp[2*i+1],pts[i+2],pts[i+3]);
-        }
-        if (options.fill) { ctx.fill() }
-        if (options.stroke) { ctx.stroke() }
-        ctx.closePath()
-    }else{  
-        // Draw an open curve, not connected at the ends
-        for(var i=0;i<n-4;i+=2){
-            cp=cp.concat(getControlPoints(pts[i],pts[i+1],pts[i+2],pts[i+3],pts[i+4],pts[i+5],t));
-        }    
-        ctx.beginPath()
-        ctx.moveTo(pts[2],pts[3]);
-        for(var i=2;i<pts.length-5;i+=2){
-            ctx.bezierCurveTo(cp[2*i-2],cp[2*i-1],cp[2*i],cp[2*i+1],pts[i+2],pts[i+3]);
-        }
-        if (options.fill) { ctx.fill() }
-        if (options.stroke) { ctx.stroke() }
-        ctx.closePath()
-        //  For open curves the first and last arcs are simple quadratics.
-
-        ctx.beginPath()
-        ctx.moveTo(pts[0],pts[1]);
-        ctx.quadraticCurveTo(cp[0],cp[1],pts[2],pts[3]);
-        if (options.fill) { ctx.fill() }
-        if (options.stroke) { ctx.stroke() }
-        ctx.closePath()
-
-        ctx.beginPath();
-        ctx.moveTo(pts[n-2],pts[n-1]);
-        ctx.quadraticCurveTo(cp[2*n-10],cp[2*n-9],pts[n-4],pts[n-3]);
-        if (options.fill) { ctx.fill() }
-        if (options.stroke) { ctx.stroke() }
-        ctx.closePath()
-    }
-}
-
-function getControlPoints(x0,y0,x1,y1,x2,y2,t){
-    //  x0,y0,x1,y1 are the coordinates of the end (knot) pts of this segment
-    //  x2,y2 is the next knot -- not connected here but needed to calculate p2
-    //  p1 is the control point calculated here, from x1 back toward x0.
-    //  p2 is the next control point, calculated here and returned to become the 
-    //  next segment's p1.
-    //  t is the 'tension' which controls how far the control points spread.
-    
-    //  Scaling factors: distances from this knot to the previous and following knots.
-    var d01=Math.sqrt(Math.pow(x1-x0,2)+Math.pow(y1-y0,2));
-    var d12=Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
-   
-    var fa=t*d01/(d01+d12);
-    var fb=t-fa;
-  
-    var p1x=x1+fa*(x0-x2);
-    var p1y=y1+fa*(y0-y2);
-
-    var p2x=x1-fb*(x0-x2);
-    var p2y=y1-fb*(y0-y2);  
-    
-    return [p1x,p1y,p2x,p2y]
-}
-
 },{}],5:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  normalize: normalize,
+  dot: dot,
+  cross: cross
+}
+
+function normalize(v) {
+  var l = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
+  return [v[0]/l, v[1]/l, v[2]/l]
+}
+
+function dot(v1, v2) {
+  return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
+}
+
+function cross(v1, v2) {
+  return [(v1[1] * v2[2] - v1[2] * v2[1]),
+          (v1[2] * v2[0] - v1[0] * v2[2]),
+          (v1[0] * v2[1] - v1[1] * v2[0])];
+}
+
+},{}],6:[function(require,module,exports){
 // https://d3js.org Version 4.2.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -17071,7 +17084,7 @@ var   y0$3;
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20109,7 +20122,7 @@ var   y0$3;
 
 }));
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20464,7 +20477,7 @@ var   y0$3;
 
 }));
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20495,129 +20508,4 @@ var   y0$3;
   };
 }));
 
-},{"./marchingsquares-isobands":6,"./marchingsquares-isocontours":7}],9:[function(require,module,exports){
-/*
- (c) 2017, Vladimir Agafonkin
- Simplify.js, a high-performance JS polyline simplification library
- mourner.github.io/simplify-js
-*/
-
-(function () { 'use strict';
-
-// to suit your point format, run search/replace for '.x' and '.y';
-// for 3D version, see 3d branch (configurability would draw significant performance overhead)
-
-// square distance between 2 points
-function getSqDist(p1, p2) {
-
-    var dx = p1.x - p2.x,
-        dy = p1.y - p2.y;
-
-    return dx * dx + dy * dy;
-}
-
-// square distance from a point to a segment
-function getSqSegDist(p, p1, p2) {
-
-    var x = p1.x,
-        y = p1.y,
-        dx = p2.x - x,
-        dy = p2.y - y;
-
-    if (dx !== 0 || dy !== 0) {
-
-        var t = ((p.x - x) * dx + (p.y - y) * dy) / (dx * dx + dy * dy);
-
-        if (t > 1) {
-            x = p2.x;
-            y = p2.y;
-
-        } else if (t > 0) {
-            x += dx * t;
-            y += dy * t;
-        }
-    }
-
-    dx = p.x - x;
-    dy = p.y - y;
-
-    return dx * dx + dy * dy;
-}
-// rest of the code doesn't care about point format
-
-// basic distance-based simplification
-function simplifyRadialDist(points, sqTolerance) {
-
-    var prevPoint = points[0],
-        newPoints = [prevPoint],
-        point;
-
-    for (var i = 1, len = points.length; i < len; i++) {
-        point = points[i];
-
-        if (getSqDist(point, prevPoint) > sqTolerance) {
-            newPoints.push(point);
-            prevPoint = point;
-        }
-    }
-
-    if (prevPoint !== point) newPoints.push(point);
-
-    return newPoints;
-}
-
-function simplifyDPStep(points, first, last, sqTolerance, simplified) {
-    var maxSqDist = sqTolerance,
-        index;
-
-    for (var i = first + 1; i < last; i++) {
-        var sqDist = getSqSegDist(points[i], points[first], points[last]);
-
-        if (sqDist > maxSqDist) {
-            index = i;
-            maxSqDist = sqDist;
-        }
-    }
-
-    if (maxSqDist > sqTolerance) {
-        if (index - first > 1) simplifyDPStep(points, first, index, sqTolerance, simplified);
-        simplified.push(points[index]);
-        if (last - index > 1) simplifyDPStep(points, index, last, sqTolerance, simplified);
-    }
-}
-
-// simplification using Ramer-Douglas-Peucker algorithm
-function simplifyDouglasPeucker(points, sqTolerance) {
-    var last = points.length - 1;
-
-    var simplified = [points[0]];
-    simplifyDPStep(points, 0, last, sqTolerance, simplified);
-    simplified.push(points[last]);
-
-    return simplified;
-}
-
-// both algorithms combined for awesome performance
-function simplify(points, tolerance, highestQuality) {
-
-    if (points.length <= 2) return points;
-
-    var sqTolerance = tolerance !== undefined ? tolerance * tolerance : 1;
-
-    points = highestQuality ? points : simplifyRadialDist(points, sqTolerance);
-    points = simplifyDouglasPeucker(points, sqTolerance);
-
-    return points;
-}
-
-// export as AMD module / Node module / browser or worker variable
-if (typeof define === 'function' && define.amd) define(function() { return simplify; });
-else if (typeof module !== 'undefined') {
-    module.exports = simplify;
-    module.exports.default = simplify;
-} else if (typeof self !== 'undefined') self.simplify = simplify;
-else window.simplify = simplify;
-
-})();
-
-},{}]},{},[1]);
+},{"./marchingsquares-isobands":7,"./marchingsquares-isocontours":8}]},{},[1]);
