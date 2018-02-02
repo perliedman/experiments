@@ -22,7 +22,7 @@ function up() {
   var solarZenith = 1.45+Math.cos(t) * Math.PI/8
   sky.setSolarPos(3, solarZenith, Math.PI/2)
 
-  document.getElementById('info').innerText = 'z = ' + solarZenith.toFixed(3)
+  // document.getElementById('info').innerText = 'z = ' + solarZenith.toFixed(3)
 
   var f = function (x, y) {
     return sky.rgba((x + ox) * sx, Math.max(-Math.PI*0.5, (-y - oy) * sy + Math.PI/3))
