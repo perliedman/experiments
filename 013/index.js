@@ -1,8 +1,9 @@
 var {makeTerrain} = require('../lib/mewo2-terrain')
 var marchingsquares = require('marchingsquares')
 var createLink = require('../lib/save-canvas-link')
-var createHeightMap = require('../lib/height-map').createHeightMap
+var {createHeightMap, renderHeightMap, canvasToHeightMap} = require('../lib/height-map')
 var {normalize, dot, cross} = require('../lib/vec')
+var {stackBlurCanvasRGB} = require('../lib/StackBlur')
 
 const renderTris = function(context, terrain, size, colFn) {
   for (var y = 0; y < size - 1; y++) {
@@ -60,7 +61,7 @@ const hillShade = function hillShade (terrain, size, getEnv) {
     )
   var heightScale = 255 / (minMax.max - minMax.min)
 
-  var l = normalize([0, 0, 1])
+  var l = normalize([-1, -1, 1])
   var canvas
   var context
 
@@ -73,16 +74,12 @@ const hillShade = function hillShade (terrain, size, getEnv) {
     var s = trinormal(terrain, tri)
     var d = dot(normalize(s), l)
     var col = Math.max(0, d)
-    return `rgb(${col*255}, ${col*255}, ${col*255})`
-    if (Math.abs(Math.round(col) - col) < 1e-9) {
-      return `rgb(${Math.round(col*255)}, ${Math.round(col*255)}, ${Math.round(col*255)})`
-    } else {
-      return 'rgba(0,0,0,0)'
-    }
+    return `rgb(${Math.round(col*255)}, ${Math.round(col*255)}, ${Math.round(col*255)})`
     //return `rgb(${s[0]*127+128}, ${s[1]*127+128}, ${s[2]*127+128})`
     //return getEnv(s[0], s[1])
   })
 
+/*
   canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
@@ -98,12 +95,12 @@ const hillShade = function hillShade (terrain, size, getEnv) {
   })
 
   return canvas
+*/
 }
 
-var size = 480
-var terrain = makeTerrain({npts:16384})
-var heightMap = createHeightMap(terrain, size, true)
-loadEnvironmentMap('imhof5.jpg')
-  .then(function(getEnv) {
-    hillShade(heightMap, size, getEnv)
-  })
+var size = 960
+var terrain = makeTerrain({npts: 32768})
+var canvas = renderHeightMap(terrain, size)
+stackBlurCanvasRGB(canvas, 0, 0, canvas.width, canvas.height, 2)
+var heightMap = canvasToHeightMap(canvas, true)
+hillShade(heightMap, size)
