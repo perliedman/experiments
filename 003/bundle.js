@@ -4,6 +4,19 @@ var marchingsquares = require('marchingsquares')
 var simplify = require('simplify-js')
 var createLink = require('../lib/save-canvas-link')
 
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
+
 var colors = [
   '#d73027',
   '#f46d43',
@@ -82,7 +95,7 @@ function drawRings (rings, options) {
   })
 }
 
-},{"../lib/fractal-terrain":2,"../lib/save-canvas-link":3,"marchingsquares":6,"simplify-js":7}],2:[function(require,module,exports){
+},{"../lib/fractal-terrain":2,"../lib/save-canvas-link":3,"insert-css":4,"marchingsquares":7,"simplify-js":8}],2:[function(require,module,exports){
 /*
   This is a slightly modified version of Hunter Loftis'
   fractal terrain generator from PlayfulJS:
@@ -171,6 +184,66 @@ module.exports = function (canvas, name) {
 }
 
 },{}],4:[function(require,module,exports){
+var containers = []; // will store container HTMLElement references
+var styleElements = []; // will store {prepend: HTMLElement, append: HTMLElement}
+
+var usage = 'insert-css: You need to provide a CSS string. Usage: insertCss(cssString[, options]).';
+
+function insertCss(css, options) {
+    options = options || {};
+
+    if (css === undefined) {
+        throw new Error(usage);
+    }
+
+    var position = options.prepend === true ? 'prepend' : 'append';
+    var container = options.container !== undefined ? options.container : document.querySelector('head');
+    var containerId = containers.indexOf(container);
+
+    // first time we see this container, create the necessary entries
+    if (containerId === -1) {
+        containerId = containers.push(container) - 1;
+        styleElements[containerId] = {};
+    }
+
+    // try to get the correponding container + position styleElement, create it otherwise
+    var styleElement;
+
+    if (styleElements[containerId] !== undefined && styleElements[containerId][position] !== undefined) {
+        styleElement = styleElements[containerId][position];
+    } else {
+        styleElement = styleElements[containerId][position] = createStyleElement();
+
+        if (position === 'prepend') {
+            container.insertBefore(styleElement, container.childNodes[0]);
+        } else {
+            container.appendChild(styleElement);
+        }
+    }
+
+    // strip potential UTF-8 BOM if css was read from a file
+    if (css.charCodeAt(0) === 0xFEFF) { css = css.substr(1, css.length); }
+
+    // actually add the stylesheet
+    if (styleElement.styleSheet) {
+        styleElement.styleSheet.cssText += css
+    } else {
+        styleElement.textContent += css;
+    }
+
+    return styleElement;
+};
+
+function createStyleElement() {
+    var styleElement = document.createElement('style');
+    styleElement.setAttribute('type', 'text/css');
+    return styleElement;
+}
+
+module.exports = insertCss;
+module.exports.insertCss = insertCss;
+
+},{}],5:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -3208,7 +3281,7 @@ module.exports = function (canvas, name) {
 
 }));
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -3563,7 +3636,7 @@ module.exports = function (canvas, name) {
 
 }));
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -3594,7 +3667,7 @@ module.exports = function (canvas, name) {
   };
 }));
 
-},{"./marchingsquares-isobands":4,"./marchingsquares-isocontours":5}],7:[function(require,module,exports){
+},{"./marchingsquares-isobands":5,"./marchingsquares-isocontours":6}],8:[function(require,module,exports){
 /*
  (c) 2017, Vladimir Agafonkin
  Simplify.js, a high-performance JS polyline simplification library

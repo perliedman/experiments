@@ -3,8 +3,21 @@ var createLink = require('../lib/save-canvas-link')
 var {renderHeightMap} = require('../lib/height-map')
 var {normalize, dot, cross} = require('../lib/vec')
 
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
+
 var terrain = makeTerrain({npts:16384})
-var size = 512
+var size = Math.min(512, window.innerWidth, window.innerHeight)
 
 const trinormal = function normal(h, i) {
     var nbs = neighbours(h.mesh, i);
@@ -51,7 +64,7 @@ const hillShade = function hillShade (terrain, size) {
       {min: Number.MAX_VALUE, max: Number.MIN_VALUE})
   var heightScale = 255 / (minMax.max - minMax.min)
 
-  var l = normalize([1, 1, 1])
+  var l = normalize([3, 4, -1])
 
   var canvas = document.createElement('canvas')
   canvas.width = size
@@ -61,10 +74,11 @@ const hillShade = function hillShade (terrain, size) {
   renderTris(context, terrain, size, (terrain, tri, i) => {
     var s = trinormal(terrain.h, i)
     var d = dot(normalize(s), l)
-    var col = Math.max(0, Math.abs(d * 255))
+    var col = Math.round(Math.max(0, d * 255))
     return `rgb(${col}, ${col}, ${col})`
   })
 
+  /*
   canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
@@ -76,6 +90,7 @@ const hillShade = function hillShade (terrain, size) {
   })
 
   return canvas
+  */
 }
 
 hillShade(terrain, size)

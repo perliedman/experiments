@@ -98,9 +98,10 @@ const hillShade = function hillShade (terrain, size, getEnv) {
 */
 }
 
-var size = 960
+var size = Math.min(960, window.innerWidth, window.innerHeight)
 var terrain = makeTerrain({npts: 32768})
 var canvas = renderHeightMap(terrain, size)
 stackBlurCanvasRGB(canvas, 0, 0, canvas.width, canvas.height, 2)
 var heightMap = canvasToHeightMap(canvas, true)
+document.body.removeChild(canvas)
 hillShade(heightMap, size)

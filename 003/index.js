@@ -3,6 +3,19 @@ var marchingsquares = require('marchingsquares')
 var simplify = require('simplify-js')
 var createLink = require('../lib/save-canvas-link')
 
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
+
 var colors = [
   '#d73027',
   '#f46d43',

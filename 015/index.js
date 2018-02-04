@@ -15,6 +15,8 @@ var normals = require('normals')
 var vert = glslify('./shaders/basic.vert')
 var frag = glslify('./shaders/env.frag')
 
+var insertCss = require('insert-css')
+
 const createMesh = function(terrain, size) {
   var index = function(x, y) { return y * size + x }
   var positions = []
@@ -56,15 +58,35 @@ const hillShade = function hillShade (terrain, gl, size, envMap) {
   geom.bind(shader)
   geom.draw(gl.TRIANGLES)
   geom.unbind()
+
+  return gl.canvas
 }
+
+insertCss(`
+  body {
+    background-color: #161624;
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    margin: 2em;
+  }
+
+  div {
+    background-color: #161624;
+    margin: auto;
+  }
+`)
 
 loadImage('imhof5.jpg', (err, image) => {
   if (err) {
     return console.error(err)
   }
-  var size = 192
+  var size = Math.min(64, window.innerWidth / 3, window.innerHeight / 3)
+  var container
   for (var i = 0; i < 9; i++) {
-    var terrain = makeTerrain({npts: 4096})
+    var terrain = makeTerrain({npts: 512})
     var canvas = renderHeightMap(terrain, size)
     stackBlurCanvasRGB(canvas, 0, 0, canvas.width, canvas.height, 2)
     var heightMap = canvasToHeightMap(canvas, true)
@@ -72,7 +94,12 @@ loadImage('imhof5.jpg', (err, image) => {
     
     var gl = glContext({ width: size*2, height: size*2 })
     document.body.appendChild(gl.canvas)
-    hillShade(heightMap, gl, size, image)
+    var canvas = hillShade(heightMap, gl, size, image)
+
+    if (i % 3 === 0) {
+      container = document.createElement('div')
+      document.body.appendChild(container)
+    }
+    container.appendChild(canvas)
   }
 })
-

@@ -21,7 +21,7 @@ const createMesh = function(terrain, size) {
   var cells = []
   for (var y = 0; y < size; y++) {
     for (var x = 0; x < size; x++) {
-      positions.push([(x - size/2)/(size/2), (y - size/2)/(size/2), //terrain[x][y]])
+      positions.push([(x - size/2)/(size/2), (y - size/2)/(size/2), terrain[x][y]])
 //      if (x < size - 1 && y < size - 1) {
       if (x < size - 1 && y < size - 1) {
         cells.push([index(x, y), index(x, y + 1), index(x + 1, y)])

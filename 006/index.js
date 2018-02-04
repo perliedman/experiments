@@ -3,6 +3,19 @@ var createLink = require('../lib/save-canvas-link')
 // var vintagejs = require('vintagejs')
 var flatten = as => [].concat.apply([], as)
 
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
+
 function wordWrap(ctx, text, maxWidth, scale, lineWidth) {
   var lines = []
   var words = text.split(' ')

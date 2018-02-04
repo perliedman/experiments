@@ -4,19 +4,6 @@ var createLink = require('../lib/save-canvas-link')
 var createHeightMap = require('../lib/height-map').createHeightMap
 var {normalize, dot, cross} = require('../lib/vec')
 
-var insertCss = require('insert-css')
-insertCss(`
-  body {
-    display: flex;
-    height: 100vh;
-  }
-
-  canvas {
-    border: 4px solid white;
-    margin: auto;  /* Magic! */
-  }
-`)
-
 const renderTris = function(context, terrain, size, colFn) {
   for (var y = 0; y < size - 1; y++) {
     for (var x = 0; x < size - 1; x++) {
@@ -75,7 +62,7 @@ const hillShade = function hillShade (terrain, size, getEnv) {
   })
 }
 
-var size = Math.min(512, window.innerWidth, window.innerHeight)
+var size = Math.min(960, window.innerWidth, window.innerHeight)
 var terrain = makeTerrain({npts:16384})
 var heightMap = createHeightMap(terrain, size, true)
 hillShade(heightMap, size)

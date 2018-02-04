@@ -5,23 +5,25 @@ var createLink = require('../lib/save-canvas-link')
 var createHeightMap = require('../lib/height-map').createHeightMap
 var {normalize, dot, cross} = require('../lib/vec')
 
-const renderTris = function(context, terrain, size, colFn) {
-  const scaleCoord = x => x
-  function triangle(tri) {
-    context.strokeStyle = context.fillStyle = colFn(terrain, tri)
-    context.beginPath()
-    context.moveTo(scaleCoord(tri[0][0]), scaleCoord(tri[0][1]))
-    context.lineTo(scaleCoord(tri[1][0]), scaleCoord(tri[1][1]))
-    context.lineTo(scaleCoord(tri[2][0]), scaleCoord(tri[2][1]))
-    context.closePath()
-    context.stroke()
-    context.fill()
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
   }
 
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
+
+const renderTris = function(context, terrain, size, colFn) {
   for (var y = 0; y < size - 1; y++) {
     for (var x = 0; x < size - 1; x++) {
-      triangle([[x, y], [x + 1, y], [x, y + 1]])
-      triangle([[x + 1, y], [x + 1, y + 1], [x, y + 1]])
+      var tri = [[x, y], [x + 1, y], [x, y + 1]]
+      context.fillStyle = colFn(terrain, tri, context)
+      context.fillRect(x, y, 1, 1)
     }
   }
 }
@@ -30,38 +32,15 @@ const trinormal = function(map, tri) {
   var v1 = [
     tri[1][0] - tri[0][0],
     tri[1][1] - tri[0][1],
-    (map[tri[1][0]][tri[1][1]] - map[tri[0][0]][tri[0][1]])
+    (map[tri[1][0]][tri[1][1]] - map[tri[0][0]][tri[0][1]]) * 255
   ]
   var v2 = [
     tri[2][0] - tri[0][0],
     tri[2][1] - tri[0][1],
-    (map[tri[2][0]][tri[2][1]] - map[tri[0][0]][tri[0][1]])
+    (map[tri[2][0]][tri[2][1]] - map[tri[0][0]][tri[0][1]]) * 255
   ]
 
   return cross(normalize(v1), normalize(v2))
-}
-
-const loadEnvironmentMap = function(url) {
-  return new Promise(function (resolve, reject) {
-    var img = new Image()
-    img.src = url
-    img.onload = function() {
-      var canvas = document.createElement('canvas');
-      canvas.width = img.width
-      canvas.height = img.height
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      img.style.display = 'none';
-      var data = ctx.getImageData(0, 0, img.width, img.height).data;
-      resolve(function(x, y) {
-        x = Math.round((x + 1) * 0.5 * img.width)
-        y = Math.round((y + 1) * 0.5 * img.height)
-        var offset = (y * img.width + x) * 4
-
-        return `rgba(${data[offset + 0]},${data[offset + 1]},${data[offset + 2]},${data[offset + 3]/255})`
-      })
-    };
-  });
 }
 
 const hillShade = function hillShade (terrain, size, getEnv) {
@@ -72,7 +51,7 @@ const hillShade = function hillShade (terrain, size, getEnv) {
     )
   var heightScale = 255 / (minMax.max - minMax.min)
 
-  var l = normalize([0, 0, 1])
+  var l = normalize([-1, -1, 1])
   var canvas
   var context
 
@@ -81,54 +60,48 @@ const hillShade = function hillShade (terrain, size, getEnv) {
   canvas.height = size
   document.body.appendChild(canvas)
   context = canvas.getContext('2d')
-  renderTris(context, terrain, size, (terrain, tri) => {
+  renderTris(context, terrain, size, (terrain, tri, context) => {
     var s = trinormal(terrain, tri)
     var d = dot(normalize(s), l)
-    var col = Math.max(0, d)
-    return `rgb(${col*col*255}, ${col*col*255}, ${col*col*255})`
-    //return `rgb(${s[0]*127+128}, ${s[1]*127+128}, ${s[2]*127+128})`
-    //return getEnv(s[0], s[1])
+    var col = Math.max(0, d) * 255
+    if (Math.abs(Math.round(col) - col) < 1e-9) {
+      return `rgb(${Math.round(col)}, ${Math.round(col)}, ${Math.round(col)})`
+    } else {
+      return context.fillStyle
+    }
+    /*
+    return `rgb(${col*255}, ${col*255}, ${col*255})`
+    return `rgb(${s[0]*127+128}, ${s[1]*127+128}, ${s[2]*127+128})`
+    */
   })
-
-  canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  document.body.appendChild(canvas)
-  context = canvas.getContext('2d')
-  renderTris(context, terrain, size, (terrain, tri) => {
-    var avg = 
-      (terrain[tri[0][0]][tri[0][1]] +
-      terrain[tri[1][0]][tri[1][1]] +
-      terrain[tri[2][0]][tri[2][1]]) / 3
-    var col = Math.round((avg - minMax.min) * heightScale)
-    return `rgb(${col}, ${col}, ${col})`
-  })
-
-  return canvas
 }
 
-var size = 512
-var terrain = makeTerrain()
-var heightMap = createHeightMap(terrain, size)
-loadEnvironmentMap('imhof5.jpg')
-  .then(function(getEnv) {
-    hillShade(heightMap, size, getEnv)
-  })
+var size = Math.min(512, window.innerWidth, window.innerHeight)
+var terrain = makeTerrain({npts:16384})
+var heightMap = createHeightMap(terrain, size, true)
+hillShade(heightMap, size)
 
-},{"../lib/height-map":2,"../lib/mewo2-terrain":3,"../lib/save-canvas-link":4,"../lib/vec":5,"marchingsquares":9}],2:[function(require,module,exports){
-const createHeightMap = function createHeightMap (terrain, size) {
+},{"../lib/height-map":2,"../lib/mewo2-terrain":3,"../lib/save-canvas-link":4,"../lib/vec":5,"insert-css":7,"marchingsquares":10}],2:[function(require,module,exports){
+const createHeightMap = function createHeightMap (terrain, size, normalize) {
   var canvas = renderHeightMap(terrain, size)
+  var heightMap = canvasToHeightMap(canvas, normalize)
+
+  document.body.removeChild(canvas)
+
+  return heightMap
+}
+
+const canvasToHeightMap = function(canvas, normalize) {
   var context = canvas.getContext('2d')
   var data = context.getImageData(0, 0, canvas.width, canvas.height).data
   var heightMap = new Array(canvas.height)
+  var f = normalize ? 255 : 0
   for (var y = 0; y < canvas.height; y++) {
     heightMap[y] = new Array(canvas.width)
     for (var x = 0; x < canvas.width; x++) {
-      heightMap[y][x] = data[(canvas.width*y + x)*4]
+      heightMap[y][x] = data[(canvas.width*y + x)*4] / f
     }
   }
-
-  document.body.removeChild(canvas)
 
   return heightMap
 }
@@ -166,7 +139,8 @@ const renderHeightMap = function renderHeightMap (terrain, size) {
 
 module.exports = {
   createHeightMap,
-  renderHeightMap
+  renderHeightMap,
+  canvasToHeightMap
 }
 
 },{}],3:[function(require,module,exports){
@@ -17085,6 +17059,66 @@ var   y0$3;
 
 }));
 },{}],7:[function(require,module,exports){
+var containers = []; // will store container HTMLElement references
+var styleElements = []; // will store {prepend: HTMLElement, append: HTMLElement}
+
+var usage = 'insert-css: You need to provide a CSS string. Usage: insertCss(cssString[, options]).';
+
+function insertCss(css, options) {
+    options = options || {};
+
+    if (css === undefined) {
+        throw new Error(usage);
+    }
+
+    var position = options.prepend === true ? 'prepend' : 'append';
+    var container = options.container !== undefined ? options.container : document.querySelector('head');
+    var containerId = containers.indexOf(container);
+
+    // first time we see this container, create the necessary entries
+    if (containerId === -1) {
+        containerId = containers.push(container) - 1;
+        styleElements[containerId] = {};
+    }
+
+    // try to get the correponding container + position styleElement, create it otherwise
+    var styleElement;
+
+    if (styleElements[containerId] !== undefined && styleElements[containerId][position] !== undefined) {
+        styleElement = styleElements[containerId][position];
+    } else {
+        styleElement = styleElements[containerId][position] = createStyleElement();
+
+        if (position === 'prepend') {
+            container.insertBefore(styleElement, container.childNodes[0]);
+        } else {
+            container.appendChild(styleElement);
+        }
+    }
+
+    // strip potential UTF-8 BOM if css was read from a file
+    if (css.charCodeAt(0) === 0xFEFF) { css = css.substr(1, css.length); }
+
+    // actually add the stylesheet
+    if (styleElement.styleSheet) {
+        styleElement.styleSheet.cssText += css
+    } else {
+        styleElement.textContent += css;
+    }
+
+    return styleElement;
+};
+
+function createStyleElement() {
+    var styleElement = document.createElement('style');
+    styleElement.setAttribute('type', 'text/css');
+    return styleElement;
+}
+
+module.exports = insertCss;
+module.exports.insertCss = insertCss;
+
+},{}],8:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20122,7 +20156,7 @@ var   y0$3;
 
 }));
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20477,7 +20511,7 @@ var   y0$3;
 
 }));
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20508,4 +20542,4 @@ var   y0$3;
   };
 }));
 
-},{"./marchingsquares-isobands":7,"./marchingsquares-isocontours":8}]},{},[1]);
+},{"./marchingsquares-isobands":8,"./marchingsquares-isocontours":9}]},{},[1]);

@@ -32,12 +32,12 @@ const trinormal = function(map, tri) {
   var v1 = [
     tri[1][0] - tri[0][0],
     tri[1][1] - tri[0][1],
-    (terrain.map[tri[1][0]][tri[1][1]] - terrain.map[tri[0][0]][tri[0][1]]) * 3
+    (terrain.map[tri[1][0]][tri[1][1]] - terrain.map[tri[0][0]][tri[0][1]]) * 10
   ]
   var v2 = [
     tri[2][0] - tri[0][0],
     tri[2][1] - tri[0][1],
-    (terrain.map[tri[2][0]][tri[2][1]] - terrain.map[tri[0][0]][tri[0][1]]) * 3
+    (terrain.map[tri[2][0]][tri[2][1]] - terrain.map[tri[0][0]][tri[0][1]]) * 10
   ]
 
   return cross(normalize(v1), normalize(v2))
@@ -84,8 +84,11 @@ const hillShade = function hillShade (terrain, size) {
   return canvas
 }
 
-hillShade(terrain, size)
-
+//hillShade(terrain, size)
+var h1 = document.createElement('h1')
+h1.innerText = 'out of order, try next'
+h1.style.color = '#fff'
+document.body.appendChild(h1)
 },{"../lib/fractal-terrain":2,"../lib/save-canvas-link":3,"../lib/vec":4}],2:[function(require,module,exports){
 /*
   This is a slightly modified version of Hunter Loftis'
