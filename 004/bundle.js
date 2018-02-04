@@ -6,6 +6,19 @@ var spline = require('../lib/spline')
 var createLink = require('../lib/save-canvas-link')
 var createHeightMap = require('../lib/height-map').createHeightMap
 
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
+
 var terrain = makeTerrain()
 var size = Math.min(512, window.innerHeight)
 var scaleCoord = c => (c+0.5)*size
@@ -29,10 +42,6 @@ canvas.width = size
 canvas.height = size
 var context = canvas.getContext('2d')
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'topo.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 var minMax = heightMap.reduce((a, row) => 
   row.reduce((a, cell) => 
@@ -64,20 +73,27 @@ function drawRings (rings, options) {
   })
 }
 
-},{"../lib/height-map":2,"../lib/mewo2-terrain":3,"../lib/save-canvas-link":4,"../lib/spline":5,"marchingsquares":9,"simplify-js":10}],2:[function(require,module,exports){
-const createHeightMap = function createHeightMap (terrain, size) {
+},{"../lib/height-map":2,"../lib/mewo2-terrain":3,"../lib/save-canvas-link":4,"../lib/spline":5,"insert-css":7,"marchingsquares":10,"simplify-js":11}],2:[function(require,module,exports){
+const createHeightMap = function createHeightMap (terrain, size, normalize) {
   var canvas = renderHeightMap(terrain, size)
+  var heightMap = canvasToHeightMap(canvas, normalize)
+
+  document.body.removeChild(canvas)
+
+  return heightMap
+}
+
+const canvasToHeightMap = function(canvas, normalize) {
   var context = canvas.getContext('2d')
   var data = context.getImageData(0, 0, canvas.width, canvas.height).data
   var heightMap = new Array(canvas.height)
+  var f = normalize ? 255 : 1
   for (var y = 0; y < canvas.height; y++) {
     heightMap[y] = new Array(canvas.width)
     for (var x = 0; x < canvas.width; x++) {
-      heightMap[y][x] = data[(canvas.width*y + x)*4]
+      heightMap[y][x] = data[(canvas.width*y + x)*4] / f
     }
   }
-
-  document.body.removeChild(canvas)
 
   return heightMap
 }
@@ -115,7 +131,8 @@ const renderHeightMap = function renderHeightMap (terrain, size) {
 
 module.exports = {
   createHeightMap,
-  renderHeightMap
+  renderHeightMap,
+  canvasToHeightMap
 }
 
 },{}],3:[function(require,module,exports){
@@ -17095,6 +17112,66 @@ var   y0$3;
 
 }));
 },{}],7:[function(require,module,exports){
+var containers = []; // will store container HTMLElement references
+var styleElements = []; // will store {prepend: HTMLElement, append: HTMLElement}
+
+var usage = 'insert-css: You need to provide a CSS string. Usage: insertCss(cssString[, options]).';
+
+function insertCss(css, options) {
+    options = options || {};
+
+    if (css === undefined) {
+        throw new Error(usage);
+    }
+
+    var position = options.prepend === true ? 'prepend' : 'append';
+    var container = options.container !== undefined ? options.container : document.querySelector('head');
+    var containerId = containers.indexOf(container);
+
+    // first time we see this container, create the necessary entries
+    if (containerId === -1) {
+        containerId = containers.push(container) - 1;
+        styleElements[containerId] = {};
+    }
+
+    // try to get the correponding container + position styleElement, create it otherwise
+    var styleElement;
+
+    if (styleElements[containerId] !== undefined && styleElements[containerId][position] !== undefined) {
+        styleElement = styleElements[containerId][position];
+    } else {
+        styleElement = styleElements[containerId][position] = createStyleElement();
+
+        if (position === 'prepend') {
+            container.insertBefore(styleElement, container.childNodes[0]);
+        } else {
+            container.appendChild(styleElement);
+        }
+    }
+
+    // strip potential UTF-8 BOM if css was read from a file
+    if (css.charCodeAt(0) === 0xFEFF) { css = css.substr(1, css.length); }
+
+    // actually add the stylesheet
+    if (styleElement.styleSheet) {
+        styleElement.styleSheet.cssText += css
+    } else {
+        styleElement.textContent += css;
+    }
+
+    return styleElement;
+};
+
+function createStyleElement() {
+    var styleElement = document.createElement('style');
+    styleElement.setAttribute('type', 'text/css');
+    return styleElement;
+}
+
+module.exports = insertCss;
+module.exports.insertCss = insertCss;
+
+},{}],8:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20132,7 +20209,7 @@ var   y0$3;
 
 }));
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20487,7 +20564,7 @@ var   y0$3;
 
 }));
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -20518,7 +20595,7 @@ var   y0$3;
   };
 }));
 
-},{"./marchingsquares-isobands":7,"./marchingsquares-isocontours":8}],10:[function(require,module,exports){
+},{"./marchingsquares-isobands":8,"./marchingsquares-isocontours":9}],11:[function(require,module,exports){
 /*
  (c) 2017, Vladimir Agafonkin
  Simplify.js, a high-performance JS polyline simplification library

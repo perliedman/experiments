@@ -1,5 +1,4 @@
 var {makeTerrain, neighbours} = require('../lib/mewo2-terrain')
-var createLink = require('../lib/save-canvas-link')
 var {renderHeightMap} = require('../lib/height-map')
 var {normalize, dot, cross} = require('../lib/vec')
 

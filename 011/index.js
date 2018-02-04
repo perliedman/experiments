@@ -1,5 +1,4 @@
 var Terrain = require('../lib/fractal-terrain')
-var createLink = require('../lib/save-canvas-link')
 var {normalize, dot, cross} = require('../lib/vec')
 
 var terrain = new Terrain(9, 100)

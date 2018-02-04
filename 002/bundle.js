@@ -1,7 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var Sky = require('../lib/sky')
 var Delaunator = require('delaunator')
-var createLink = require('../lib/save-canvas-link')
 
 var canvas = document.createElement('canvas')
 canvas.width = window.innerWidth
@@ -10,10 +9,6 @@ var context = canvas.getContext('2d')
 var imageData = context.createImageData(canvas.width, canvas.height)
 
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'frosted-glass.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 var sky = new Sky(3, 1.45, Math.PI/2)
 
@@ -75,20 +70,7 @@ function up () {
 
 up()
 
-},{"../lib/save-canvas-link":2,"../lib/sky":3,"delaunator":4}],2:[function(require,module,exports){
-module.exports = function (canvas, name) {
-  var link = document.createElement('a')
-  link.href = '#'
-  link.addEventListener('mousedown', function(ev) {
-      link.href = canvas.toDataURL()
-      link.download = name || 'unnamed.png'
-      ev.preventDefault()
-  }, false)
-
-  return link
-}
-
-},{}],3:[function(require,module,exports){
+},{"../lib/sky":2,"delaunator":3}],2:[function(require,module,exports){
 /*
   This is more or less a straight port of the codeb by
   Nico Schertler found on
@@ -226,7 +208,7 @@ function mul(mat, v) {
   return mat.map(function (r) { return dot(r, v) })
 }
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 'use strict';
 
 module.exports = Delaunator;

@@ -2,7 +2,19 @@ var {makeTerrain, contour} = require('../lib/mewo2-terrain')
 var marchingsquares = require('marchingsquares')
 var simplify = require('simplify-js')
 var spline = require('../lib/spline')
-var createLink = require('../lib/save-canvas-link')
+
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
 
 var terrain = makeTerrain()
 var size = Math.min(512, window.innerHeight)
@@ -56,10 +68,6 @@ canvas.width = size
 canvas.height = size
 var context = canvas.getContext('2d')
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'topo.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 context.fillStyle = 'white'
 context.fillRect(0, 0, size, size)

@@ -3,7 +3,19 @@ var {makeTerrain, contour} = require('../lib/mewo2-terrain')
 var marchingsquares = require('marchingsquares')
 var simplify = require('simplify-js')
 var spline = require('../lib/spline')
-var createLink = require('../lib/save-canvas-link')
+
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
 
 var terrain = makeTerrain()
 var size = Math.min(512, window.innerHeight)
@@ -57,10 +69,6 @@ canvas.width = size
 canvas.height = size
 var context = canvas.getContext('2d')
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'topo.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 context.fillStyle = 'white'
 context.fillRect(0, 0, size, size)
@@ -95,7 +103,7 @@ function drawRings (rings, options) {
   })
 }
 
-},{"../lib/mewo2-terrain":2,"../lib/save-canvas-link":3,"../lib/spline":4,"marchingsquares":8,"simplify-js":9}],2:[function(require,module,exports){
+},{"../lib/mewo2-terrain":2,"../lib/spline":3,"insert-css":5,"marchingsquares":8,"simplify-js":9}],2:[function(require,module,exports){
 /*
     Modified copy of terrain.js from Martin O'Leary's fantastic 
     terrain repo (https://github.com/mewo2/terrain)
@@ -741,20 +749,7 @@ var defaultParams = {
 }
 
 
-},{"d3":5}],3:[function(require,module,exports){
-module.exports = function (canvas, name) {
-  var link = document.createElement('a')
-  link.href = '#'
-  link.addEventListener('mousedown', function(ev) {
-      link.href = canvas.toDataURL()
-      link.download = name || 'unnamed.png'
-      ev.preventDefault()
-  }, false)
-
-  return link
-}
-
-},{}],4:[function(require,module,exports){
+},{"d3":4}],3:[function(require,module,exports){
 /*
     Copied from http://scaledinnovation.com/analytics/splines/aboutSplines.html
 */
@@ -839,7 +834,7 @@ function getControlPoints(x0,y0,x1,y1,x2,y2,t){
     return [p1x,p1y,p2x,p2y]
 }
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 // https://d3js.org Version 4.2.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -17071,6 +17066,66 @@ var   y0$3;
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
+},{}],5:[function(require,module,exports){
+var containers = []; // will store container HTMLElement references
+var styleElements = []; // will store {prepend: HTMLElement, append: HTMLElement}
+
+var usage = 'insert-css: You need to provide a CSS string. Usage: insertCss(cssString[, options]).';
+
+function insertCss(css, options) {
+    options = options || {};
+
+    if (css === undefined) {
+        throw new Error(usage);
+    }
+
+    var position = options.prepend === true ? 'prepend' : 'append';
+    var container = options.container !== undefined ? options.container : document.querySelector('head');
+    var containerId = containers.indexOf(container);
+
+    // first time we see this container, create the necessary entries
+    if (containerId === -1) {
+        containerId = containers.push(container) - 1;
+        styleElements[containerId] = {};
+    }
+
+    // try to get the correponding container + position styleElement, create it otherwise
+    var styleElement;
+
+    if (styleElements[containerId] !== undefined && styleElements[containerId][position] !== undefined) {
+        styleElement = styleElements[containerId][position];
+    } else {
+        styleElement = styleElements[containerId][position] = createStyleElement();
+
+        if (position === 'prepend') {
+            container.insertBefore(styleElement, container.childNodes[0]);
+        } else {
+            container.appendChild(styleElement);
+        }
+    }
+
+    // strip potential UTF-8 BOM if css was read from a file
+    if (css.charCodeAt(0) === 0xFEFF) { css = css.substr(1, css.length); }
+
+    // actually add the stylesheet
+    if (styleElement.styleSheet) {
+        styleElement.styleSheet.cssText += css
+    } else {
+        styleElement.textContent += css;
+    }
+
+    return styleElement;
+};
+
+function createStyleElement() {
+    var styleElement = document.createElement('style');
+    styleElement.setAttribute('type', 'text/css');
+    return styleElement;
+}
+
+module.exports = insertCss;
+module.exports.insertCss = insertCss;
+
 },{}],6:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.

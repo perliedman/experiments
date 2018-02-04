@@ -1,7 +1,6 @@
 var Terrain = require('../lib/fractal-terrain')
 var marchingsquares = require('marchingsquares')
 var simplify = require('simplify-js')
-var createLink = require('../lib/save-canvas-link')
 
 var insertCss = require('insert-css')
 insertCss(`
@@ -44,10 +43,6 @@ canvas.height = size
 var scale = size / terrain.size
 var context = canvas.getContext('2d')
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'topo.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 context.lineWidth = 1
 context.strokeStyle = 'black'

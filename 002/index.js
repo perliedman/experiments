@@ -1,6 +1,5 @@
 var Sky = require('../lib/sky')
 var Delaunator = require('delaunator')
-var createLink = require('../lib/save-canvas-link')
 
 var canvas = document.createElement('canvas')
 canvas.width = window.innerWidth
@@ -9,10 +8,6 @@ var context = canvas.getContext('2d')
 var imageData = context.createImageData(canvas.width, canvas.height)
 
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'frosted-glass.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 var sky = new Sky(3, 1.45, Math.PI/2)
 

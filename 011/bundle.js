@@ -1,6 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var Terrain = require('../lib/fractal-terrain')
-var createLink = require('../lib/save-canvas-link')
 var {normalize, dot, cross} = require('../lib/vec')
 
 var terrain = new Terrain(9, 100)
@@ -89,7 +88,7 @@ var h1 = document.createElement('h1')
 h1.innerText = 'out of order, try next'
 h1.style.color = '#fff'
 document.body.appendChild(h1)
-},{"../lib/fractal-terrain":2,"../lib/save-canvas-link":3,"../lib/vec":4}],2:[function(require,module,exports){
+},{"../lib/fractal-terrain":2,"../lib/vec":3}],2:[function(require,module,exports){
 /*
   This is a slightly modified version of Hunter Loftis'
   fractal terrain generator from PlayfulJS:
@@ -165,19 +164,6 @@ Terrain.prototype.generate = function(roughness) {
 };
 
 },{}],3:[function(require,module,exports){
-module.exports = function (canvas, name) {
-  var link = document.createElement('a')
-  link.href = '#'
-  link.addEventListener('mousedown', function(ev) {
-      link.href = canvas.toDataURL()
-      link.download = name || 'unnamed.png'
-      ev.preventDefault()
-  }, false)
-
-  return link
-}
-
-},{}],4:[function(require,module,exports){
 "use strict";
 
 module.exports = {

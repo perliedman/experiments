@@ -2,7 +2,6 @@
 var Terrain = require('../lib/fractal-terrain')
 var marchingsquares = require('marchingsquares')
 var simplify = require('simplify-js')
-var createLink = require('../lib/save-canvas-link')
 
 var insertCss = require('insert-css')
 insertCss(`
@@ -45,10 +44,6 @@ canvas.height = size
 var scale = size / terrain.size
 var context = canvas.getContext('2d')
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'topo.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 context.lineWidth = 1
 context.strokeStyle = 'black'
@@ -95,7 +90,7 @@ function drawRings (rings, options) {
   })
 }
 
-},{"../lib/fractal-terrain":2,"../lib/save-canvas-link":3,"insert-css":4,"marchingsquares":7,"simplify-js":8}],2:[function(require,module,exports){
+},{"../lib/fractal-terrain":2,"insert-css":3,"marchingsquares":6,"simplify-js":7}],2:[function(require,module,exports){
 /*
   This is a slightly modified version of Hunter Loftis'
   fractal terrain generator from PlayfulJS:
@@ -171,19 +166,6 @@ Terrain.prototype.generate = function(roughness) {
 };
 
 },{}],3:[function(require,module,exports){
-module.exports = function (canvas, name) {
-  var link = document.createElement('a')
-  link.href = '#'
-  link.addEventListener('mousedown', function(ev) {
-      link.href = canvas.toDataURL()
-      link.download = name || 'unnamed.png'
-      ev.preventDefault()
-  }, false)
-
-  return link
-}
-
-},{}],4:[function(require,module,exports){
 var containers = []; // will store container HTMLElement references
 var styleElements = []; // will store {prepend: HTMLElement, append: HTMLElement}
 
@@ -243,7 +225,7 @@ function createStyleElement() {
 module.exports = insertCss;
 module.exports.insertCss = insertCss;
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -3281,7 +3263,7 @@ module.exports.insertCss = insertCss;
 
 }));
 
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -3636,7 +3618,7 @@ module.exports.insertCss = insertCss;
 
 }));
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -3667,7 +3649,7 @@ module.exports.insertCss = insertCss;
   };
 }));
 
-},{"./marchingsquares-isobands":5,"./marchingsquares-isocontours":6}],8:[function(require,module,exports){
+},{"./marchingsquares-isobands":4,"./marchingsquares-isocontours":5}],7:[function(require,module,exports){
 /*
  (c) 2017, Vladimir Agafonkin
  Simplify.js, a high-performance JS polyline simplification library

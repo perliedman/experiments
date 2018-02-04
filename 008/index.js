@@ -4,7 +4,6 @@ const proj4 = require('proj4')
 const inside = require('@turf/boolean-point-in-polygon')
 const point = require('@turf/helpers').point
 const Delaunator = require('delaunator')
-const createLink = require('../lib/save-canvas-link')
 
 const height = Math.min(768, window.innerHeight)
 const width = height * 0.67
@@ -13,10 +12,6 @@ canvas.width = width
 canvas.height = height
 const context = canvas.getContext('2d')
 document.body.appendChild(canvas)
-const saveLink = createLink(canvas, 'text.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 context.fillStyle = 'white'
 context.fillRect(0, 0, width, height)

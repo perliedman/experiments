@@ -1,6 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var {makeTerrain, neighbours} = require('../lib/mewo2-terrain')
-var createLink = require('../lib/save-canvas-link')
 var {renderHeightMap} = require('../lib/height-map')
 var {normalize, dot, cross} = require('../lib/vec')
 
@@ -95,7 +94,7 @@ const hillShade = function hillShade (terrain, size) {
 }
 
 hillShade(terrain, size)
-},{"../lib/height-map":2,"../lib/mewo2-terrain":3,"../lib/save-canvas-link":4,"../lib/vec":5,"insert-css":7}],2:[function(require,module,exports){
+},{"../lib/height-map":2,"../lib/mewo2-terrain":3,"../lib/vec":4,"insert-css":6}],2:[function(require,module,exports){
 const createHeightMap = function createHeightMap (terrain, size, normalize) {
   var canvas = renderHeightMap(terrain, size)
   var heightMap = canvasToHeightMap(canvas, normalize)
@@ -109,7 +108,7 @@ const canvasToHeightMap = function(canvas, normalize) {
   var context = canvas.getContext('2d')
   var data = context.getImageData(0, 0, canvas.width, canvas.height).data
   var heightMap = new Array(canvas.height)
-  var f = normalize ? 255 : 0
+  var f = normalize ? 255 : 1
   for (var y = 0; y < canvas.height; y++) {
     heightMap[y] = new Array(canvas.width)
     for (var x = 0; x < canvas.width; x++) {
@@ -803,20 +802,7 @@ var defaultParams = {
 }
 
 
-},{"d3":6}],4:[function(require,module,exports){
-module.exports = function (canvas, name) {
-  var link = document.createElement('a')
-  link.href = '#'
-  link.addEventListener('mousedown', function(ev) {
-      link.href = canvas.toDataURL()
-      link.download = name || 'unnamed.png'
-      ev.preventDefault()
-  }, false)
-
-  return link
-}
-
-},{}],5:[function(require,module,exports){
+},{"d3":5}],4:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -840,7 +826,7 @@ function cross(v1, v2) {
           (v1[0] * v2[1] - v1[1] * v2[0])];
 }
 
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 // https://d3js.org Version 4.2.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -17072,7 +17058,7 @@ var   y0$3;
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var containers = []; // will store container HTMLElement references
 var styleElements = []; // will store {prepend: HTMLElement, append: HTMLElement}
 

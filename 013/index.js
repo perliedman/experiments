@@ -1,6 +1,5 @@
 var {makeTerrain} = require('../lib/mewo2-terrain')
 var marchingsquares = require('marchingsquares')
-var createLink = require('../lib/save-canvas-link')
 var {createHeightMap, renderHeightMap, canvasToHeightMap} = require('../lib/height-map')
 var {normalize, dot, cross} = require('../lib/vec')
 var {stackBlurCanvasRGB} = require('../lib/StackBlur')

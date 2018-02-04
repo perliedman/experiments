@@ -1,5 +1,4 @@
 var txtgen = require('txtgen')
-var createLink = require('../lib/save-canvas-link')
 // var vintagejs = require('vintagejs')
 var flatten = as => [].concat.apply([], as)
 
@@ -67,10 +66,6 @@ canvas.width = width
 canvas.height = width
 var context = canvas.getContext('2d')
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'text.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 context.fillRect(0, 0, width, width)
 

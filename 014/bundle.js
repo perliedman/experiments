@@ -1,7 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var {makeTerrain} = require('../lib/mewo2-terrain')
 var marchingsquares = require('marchingsquares')
-var createLink = require('../lib/save-canvas-link')
 var {createHeightMap, renderHeightMap, canvasToHeightMap} = require('../lib/height-map')
 var {normalize, dot, cross} = require('../lib/vec')
 var {stackBlurCanvasRGB} = require('../lib/StackBlur')
@@ -75,7 +74,7 @@ loadImage('imhof5.jpg', (err, image) => {
 })
 
 
-},{"../lib/StackBlur":2,"../lib/height-map":3,"../lib/load-image":4,"../lib/mewo2-terrain":5,"../lib/save-canvas-link":6,"../lib/vec":7,"gl-geometry":26,"gl-shader":28,"gl-texture2d":35,"glslify":49,"marchingsquares":57,"normals":60,"webgl-context":69}],2:[function(require,module,exports){
+},{"../lib/StackBlur":2,"../lib/height-map":3,"../lib/load-image":4,"../lib/mewo2-terrain":5,"../lib/vec":6,"gl-geometry":25,"gl-shader":27,"gl-texture2d":34,"glslify":48,"marchingsquares":56,"normals":59,"webgl-context":68}],2:[function(require,module,exports){
 /*
 
 StackBlur - a fast almost Gaussian Blur For Canvas
@@ -706,7 +705,7 @@ const canvasToHeightMap = function(canvas, normalize) {
   var context = canvas.getContext('2d')
   var data = context.getImageData(0, 0, canvas.width, canvas.height).data
   var heightMap = new Array(canvas.height)
-  var f = normalize ? 255 : 0
+  var f = normalize ? 255 : 1
   for (var y = 0; y < canvas.height; y++) {
     heightMap[y] = new Array(canvas.width)
     for (var x = 0; x < canvas.width; x++) {
@@ -1409,20 +1408,7 @@ var defaultParams = {
 }
 
 
-},{"d3":18}],6:[function(require,module,exports){
-module.exports = function (canvas, name) {
-  var link = document.createElement('a')
-  link.href = '#'
-  link.addEventListener('mousedown', function(ev) {
-      link.href = canvas.toDataURL()
-      link.download = name || 'unnamed.png'
-      ev.preventDefault()
-  }, false)
-
-  return link
-}
-
-},{}],7:[function(require,module,exports){
+},{"d3":17}],6:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -1446,7 +1432,7 @@ function cross(v1, v2) {
           (v1[0] * v2[1] - v1[1] * v2[0])];
 }
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var padLeft = require('pad-left')
 
 module.exports = addLineNumbers
@@ -1464,7 +1450,7 @@ function addLineNumbers (string, start, delim) {
   }).join('\n')
 }
 
-},{"pad-left":61}],9:[function(require,module,exports){
+},{"pad-left":60}],8:[function(require,module,exports){
 var dtype = require('dtype')
 
 module.exports = pack
@@ -1492,7 +1478,7 @@ function pack(arr, type) {
   return out
 }
 
-},{"dtype":10}],10:[function(require,module,exports){
+},{"dtype":9}],9:[function(require,module,exports){
 (function (Buffer){
 module.exports = function(dtype) {
   switch (dtype) {
@@ -1527,12 +1513,12 @@ module.exports = function(dtype) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":14}],11:[function(require,module,exports){
+},{"buffer":13}],10:[function(require,module,exports){
 module.exports = function _atob(str) {
   return atob(str)
 }
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -1648,7 +1634,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /**
  * Bit twiddling hacks for JavaScript.
  *
@@ -1854,7 +1840,7 @@ exports.nextCombination = function(v) {
 }
 
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -3570,7 +3556,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":12,"ieee754":50}],15:[function(require,module,exports){
+},{"base64-js":11,"ieee754":49}],14:[function(require,module,exports){
 "use strict"
 
 var createThunk = require("./lib/thunk.js")
@@ -3681,7 +3667,7 @@ function compileCwise(user_args) {
 
 module.exports = compileCwise
 
-},{"./lib/thunk.js":17}],16:[function(require,module,exports){
+},{"./lib/thunk.js":16}],15:[function(require,module,exports){
 "use strict"
 
 var uniq = require("uniq")
@@ -4041,7 +4027,7 @@ function generateCWiseOp(proc, typesig) {
 }
 module.exports = generateCWiseOp
 
-},{"uniq":65}],17:[function(require,module,exports){
+},{"uniq":64}],16:[function(require,module,exports){
 "use strict"
 
 // The function below is called when constructing a cwise function object, and does the following:
@@ -4129,7 +4115,7 @@ function createThunk(proc) {
 
 module.exports = createThunk
 
-},{"./compile.js":16}],18:[function(require,module,exports){
+},{"./compile.js":15}],17:[function(require,module,exports){
 // https://d3js.org Version 4.2.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -20361,7 +20347,7 @@ var   y0$3;
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = function(dtype) {
   switch (dtype) {
     case 'int8':
@@ -20384,7 +20370,7 @@ module.exports = function(dtype) {
       return Array
   }
 }
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict"
 
 function dupe_array(count, value, i) {
@@ -20434,7 +20420,7 @@ function dupe(count, value) {
 }
 
 module.exports = dupe
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = getCanvasContext
 function getCanvasContext (type, opts) {
   if (typeof type !== 'string') {
@@ -20474,7 +20460,7 @@ function getCanvasContext (type, opts) {
   return (gl || null) // ensure null on fail
 }
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict"
 
 var pool = require("typedarray-pool")
@@ -20628,7 +20614,7 @@ function createBuffer(gl, data, type, usage) {
 
 module.exports = createBuffer
 
-},{"ndarray":59,"ndarray-ops":58,"typedarray-pool":64}],23:[function(require,module,exports){
+},{"ndarray":58,"ndarray-ops":57,"typedarray-pool":63}],22:[function(require,module,exports){
 module.exports = {
   0: 'NONE',
   1: 'ONE',
@@ -20928,14 +20914,14 @@ module.exports = {
   37444: 'BROWSER_DEFAULT_WEBGL'
 }
 
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 var gl10 = require('./1.0/numbers')
 
 module.exports = function lookupConstant (number) {
   return gl10[number]
 }
 
-},{"./1.0/numbers":23}],25:[function(require,module,exports){
+},{"./1.0/numbers":22}],24:[function(require,module,exports){
 
 var sprintf = require('sprintf-js').sprintf;
 var glConstants = require('gl-constants/lookup');
@@ -20990,7 +20976,7 @@ function formatCompilerError(errLog, src, type) {
 }
 
 
-},{"add-line-numbers":8,"gl-constants/lookup":24,"glsl-shader-name":41,"sprintf-js":63}],26:[function(require,module,exports){
+},{"add-line-numbers":7,"gl-constants/lookup":23,"glsl-shader-name":40,"sprintf-js":62}],25:[function(require,module,exports){
 var normalize = require('./normalize')
 var glType = require('gl-to-dtype')
 var createVAO = require('gl-vao')
@@ -21155,7 +21141,7 @@ GLGeometry.prototype.update = function update () {
   ).BYTES_PER_ELEMENT || 2
 }
 
-},{"./normalize":27,"dtype":19,"gl-to-dtype":36,"gl-vao":40}],27:[function(require,module,exports){
+},{"./normalize":26,"dtype":18,"gl-to-dtype":35,"gl-vao":39}],26:[function(require,module,exports){
 var pack = require('array-pack-2d')
 var ista = require('is-typedarray')
 var createBuffer = require('gl-buffer')
@@ -21249,7 +21235,7 @@ function convert (a, B) {
   return b
 }
 
-},{"array-pack-2d":9,"dtype":19,"gl-buffer":22,"is-typedarray":53,"isndarray":54}],28:[function(require,module,exports){
+},{"array-pack-2d":8,"dtype":18,"gl-buffer":21,"is-typedarray":52,"isndarray":53}],27:[function(require,module,exports){
 'use strict'
 
 var createUniformWrapper   = require('./lib/create-uniforms')
@@ -21515,7 +21501,7 @@ function createShader(
 
 module.exports = createShader
 
-},{"./lib/GLError":29,"./lib/create-attributes":30,"./lib/create-uniforms":31,"./lib/reflect":32,"./lib/runtime-reflect":33,"./lib/shader-cache":34}],29:[function(require,module,exports){
+},{"./lib/GLError":28,"./lib/create-attributes":29,"./lib/create-uniforms":30,"./lib/reflect":31,"./lib/runtime-reflect":32,"./lib/shader-cache":33}],28:[function(require,module,exports){
 function GLError (rawError, shortMessage, longMessage) {
     this.shortMessage = shortMessage || ''
     this.longMessage = longMessage || ''
@@ -21530,7 +21516,7 @@ GLError.prototype.name = 'GLError'
 GLError.prototype.constructor = GLError
 module.exports = GLError
 
-},{}],30:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 'use strict'
 
 module.exports = createAttributeWrapper
@@ -21795,7 +21781,7 @@ function createAttributeWrapper(
   return obj
 }
 
-},{"./GLError":29}],31:[function(require,module,exports){
+},{"./GLError":28}],30:[function(require,module,exports){
 'use strict'
 
 var coallesceUniforms = require('./reflect')
@@ -21988,7 +21974,7 @@ function createUniformWrapper(gl, wrapper, uniforms, locations) {
   }
 }
 
-},{"./GLError":29,"./reflect":32}],32:[function(require,module,exports){
+},{"./GLError":28,"./reflect":31}],31:[function(require,module,exports){
 'use strict'
 
 module.exports = makeReflectTypes
@@ -22046,7 +22032,7 @@ function makeReflectTypes(uniforms, useIndex) {
   }
   return obj
 }
-},{}],33:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 'use strict'
 
 exports.uniforms    = runtimeUniforms
@@ -22126,7 +22112,7 @@ function runtimeAttributes(gl, program) {
   return result
 }
 
-},{}],34:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 'use strict'
 
 exports.shader   = getShaderReference
@@ -22264,7 +22250,7 @@ function createProgram(gl, vref, fref, attribs, locations) {
   return getCache(gl).getProgram(vref, fref, attribs, locations)
 }
 
-},{"./GLError":29,"gl-format-compiler-error":25,"weakmap-shim":68}],35:[function(require,module,exports){
+},{"./GLError":28,"gl-format-compiler-error":24,"weakmap-shim":67}],34:[function(require,module,exports){
 'use strict'
 
 var ndarray = require('ndarray')
@@ -22827,7 +22813,7 @@ function createTexture2D(gl) {
   throw new Error('gl-texture2d: Invalid arguments for texture2d constructor')
 }
 
-},{"ndarray":59,"ndarray-ops":58,"typedarray-pool":64}],36:[function(require,module,exports){
+},{"ndarray":58,"ndarray-ops":57,"typedarray-pool":63}],35:[function(require,module,exports){
 module.exports = glToType
 function glToType (flag) {
   switch (flag) {
@@ -22845,7 +22831,7 @@ function glToType (flag) {
   }
 }
 
-},{}],37:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 "use strict"
 
 function doBind(gl, elements, attributes) {
@@ -22900,7 +22886,7 @@ function doBind(gl, elements, attributes) {
 }
 
 module.exports = doBind
-},{}],38:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict"
 
 var bindAttribs = require("./do-bind.js")
@@ -22940,7 +22926,7 @@ function createVAOEmulated(gl) {
 }
 
 module.exports = createVAOEmulated
-},{"./do-bind.js":37}],39:[function(require,module,exports){
+},{"./do-bind.js":36}],38:[function(require,module,exports){
 "use strict"
 
 var bindAttribs = require("./do-bind.js")
@@ -23028,7 +23014,7 @@ function createVAONative(gl, ext) {
 }
 
 module.exports = createVAONative
-},{"./do-bind.js":37}],40:[function(require,module,exports){
+},{"./do-bind.js":36}],39:[function(require,module,exports){
 "use strict"
 
 var createVAONative = require("./lib/vao-native.js")
@@ -23057,7 +23043,7 @@ function createVAO(gl, attributes, elements, elementsType) {
 
 module.exports = createVAO
 
-},{"./lib/vao-emulated.js":38,"./lib/vao-native.js":39}],41:[function(require,module,exports){
+},{"./lib/vao-emulated.js":37,"./lib/vao-native.js":38}],40:[function(require,module,exports){
 var tokenize = require('glsl-tokenizer')
 var atob     = require('atob-lite')
 
@@ -23082,7 +23068,7 @@ function getName(src) {
   }
 }
 
-},{"atob-lite":11,"glsl-tokenizer":48}],42:[function(require,module,exports){
+},{"atob-lite":10,"glsl-tokenizer":47}],41:[function(require,module,exports){
 module.exports = tokenize
 
 var literals100 = require('./lib/literals')
@@ -23446,7 +23432,7 @@ function tokenize(opt) {
   }
 }
 
-},{"./lib/builtins":44,"./lib/builtins-300es":43,"./lib/literals":46,"./lib/literals-300es":45,"./lib/operators":47}],43:[function(require,module,exports){
+},{"./lib/builtins":43,"./lib/builtins-300es":42,"./lib/literals":45,"./lib/literals-300es":44,"./lib/operators":46}],42:[function(require,module,exports){
 // 300es builtins/reserved words that were previously valid in v100
 var v100 = require('./builtins')
 
@@ -23517,7 +23503,7 @@ module.exports = v100.concat([
   , 'textureProjGradOffset'
 ])
 
-},{"./builtins":44}],44:[function(require,module,exports){
+},{"./builtins":43}],43:[function(require,module,exports){
 module.exports = [
   // Keep this list sorted
   'abs'
@@ -23669,7 +23655,7 @@ module.exports = [
   , 'textureCubeGradEXT'
 ]
 
-},{}],45:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 var v100 = require('./literals')
 
 module.exports = v100.slice().concat([
@@ -23759,7 +23745,7 @@ module.exports = v100.slice().concat([
   , 'usampler2DMSArray'
 ])
 
-},{"./literals":46}],46:[function(require,module,exports){
+},{"./literals":45}],45:[function(require,module,exports){
 module.exports = [
   // current
     'precision'
@@ -23854,7 +23840,7 @@ module.exports = [
   , 'using'
 ]
 
-},{}],47:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 module.exports = [
     '<<='
   , '>>='
@@ -23903,7 +23889,7 @@ module.exports = [
   , '}'
 ]
 
-},{}],48:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 var tokenize = require('./index')
 
 module.exports = tokenizeString
@@ -23918,7 +23904,7 @@ function tokenizeString(str, opt) {
   return tokens
 }
 
-},{"./index":42}],49:[function(require,module,exports){
+},{"./index":41}],48:[function(require,module,exports){
 module.exports = function(strings) {
   if (typeof strings === 'string') strings = [strings]
   var exprs = [].slice.call(arguments,1)
@@ -23930,7 +23916,7 @@ module.exports = function(strings) {
   return parts.join('')
 }
 
-},{}],50:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -24016,7 +24002,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],51:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 "use strict"
 
 function iota(n) {
@@ -24028,7 +24014,7 @@ function iota(n) {
 }
 
 module.exports = iota
-},{}],52:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -24051,7 +24037,7 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],53:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 module.exports      = isTypedArray
 isTypedArray.strict = isStrictTypedArray
 isTypedArray.loose  = isLooseTypedArray
@@ -24092,7 +24078,7 @@ function isLooseTypedArray(arr) {
   return names[toString.call(arr)]
 }
 
-},{}],54:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 module.exports = function(arr) {
   if (!arr) return false
   if (!arr.dtype) return false
@@ -24100,7 +24086,7 @@ module.exports = function(arr) {
   return re.test(String(arr.constructor))
 }
 
-},{}],55:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -27138,7 +27124,7 @@ module.exports = function(arr) {
 
 }));
 
-},{}],56:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -27493,7 +27479,7 @@ module.exports = function(arr) {
 
 }));
 
-},{}],57:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 /*!
 * @license GNU Affero General Public License.
 * Copyright (c) 2015, 2015 Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -27524,7 +27510,7 @@ module.exports = function(arr) {
   };
 }));
 
-},{"./marchingsquares-isobands":55,"./marchingsquares-isocontours":56}],58:[function(require,module,exports){
+},{"./marchingsquares-isobands":54,"./marchingsquares-isocontours":55}],57:[function(require,module,exports){
 "use strict"
 
 var compile = require("cwise-compiler")
@@ -27987,7 +27973,7 @@ exports.equals = compile({
 
 
 
-},{"cwise-compiler":15}],59:[function(require,module,exports){
+},{"cwise-compiler":14}],58:[function(require,module,exports){
 var iota = require("iota-array")
 var isBuffer = require("is-buffer")
 
@@ -28332,7 +28318,7 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
 
 module.exports = wrappedNDArrayCtor
 
-},{"iota-array":51,"is-buffer":52}],60:[function(require,module,exports){
+},{"iota-array":50,"is-buffer":51}],59:[function(require,module,exports){
 var DEFAULT_NORMALS_EPSILON = 1e-6;
 var DEFAULT_FACE_EPSILON = 1e-6;
 
@@ -28457,7 +28443,7 @@ exports.faceNormals = function(faces, positions, specifiedEpsilon) {
 
 
 
-},{}],61:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 /*!
  * pad-left <https://github.com/jonschlinkert/pad-left>
  *
@@ -28473,7 +28459,7 @@ module.exports = function padLeft(str, num, ch) {
   ch = typeof ch !== 'undefined' ? (ch + '') : ' ';
   return repeat(ch, num) + str;
 };
-},{"repeat-string":62}],62:[function(require,module,exports){
+},{"repeat-string":61}],61:[function(require,module,exports){
 /*!
  * repeat-string <https://github.com/jonschlinkert/repeat-string>
  *
@@ -28545,7 +28531,7 @@ function repeat(str, num) {
   return res;
 }
 
-},{}],63:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 /* global window, exports, define */
 
 !function() {
@@ -28765,7 +28751,7 @@ function repeat(str, num) {
     /* eslint-enable quote-props */
 }()
 
-},{}],64:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 (function (global,Buffer){
 'use strict'
 
@@ -28982,7 +28968,7 @@ exports.clearCache = function clearCache() {
   }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"bit-twiddle":13,"buffer":14,"dup":20}],65:[function(require,module,exports){
+},{"bit-twiddle":12,"buffer":13,"dup":19}],64:[function(require,module,exports){
 "use strict"
 
 function unique_pred(list, compare) {
@@ -29041,7 +29027,7 @@ function unique(list, compare, sorted) {
 
 module.exports = unique
 
-},{}],66:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 var hiddenStore = require('./hidden-store.js');
 
 module.exports = createStore;
@@ -29062,7 +29048,7 @@ function createStore() {
     };
 }
 
-},{"./hidden-store.js":67}],67:[function(require,module,exports){
+},{"./hidden-store.js":66}],66:[function(require,module,exports){
 module.exports = hiddenStore;
 
 function hiddenStore(obj, key) {
@@ -29080,7 +29066,7 @@ function hiddenStore(obj, key) {
     return store;
 }
 
-},{}],68:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 // Original - @Gozola.
 // https://gist.github.com/Gozala/1269991
 // This is a reimplemented version (with a few bug fixes).
@@ -29111,11 +29097,11 @@ function weakMap() {
     }
 }
 
-},{"./create-store.js":66}],69:[function(require,module,exports){
+},{"./create-store.js":65}],68:[function(require,module,exports){
 var getContext = require('get-canvas-context')
 
 module.exports = function getWebGLContext (opt) {
   return getContext('webgl', opt)
 }
 
-},{"get-canvas-context":21}]},{},[1]);
+},{"get-canvas-context":20}]},{},[1]);

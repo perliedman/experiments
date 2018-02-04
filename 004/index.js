@@ -5,6 +5,19 @@ var spline = require('../lib/spline')
 var createLink = require('../lib/save-canvas-link')
 var createHeightMap = require('../lib/height-map').createHeightMap
 
+var insertCss = require('insert-css')
+insertCss(`
+  body {
+    display: flex;
+    height: 100vh;
+  }
+
+  canvas {
+    border: 4px solid white;
+    margin: auto;  /* Magic! */
+  }
+`)
+
 var terrain = makeTerrain()
 var size = Math.min(512, window.innerHeight)
 var scaleCoord = c => (c+0.5)*size
@@ -28,10 +41,6 @@ canvas.width = size
 canvas.height = size
 var context = canvas.getContext('2d')
 document.body.appendChild(canvas)
-var saveLink = createLink(canvas, 'topo.png')
-saveLink.id = 'save'
-saveLink.innerText = 'Save'
-document.body.appendChild(saveLink)
 
 var minMax = heightMap.reduce((a, row) => 
   row.reduce((a, cell) => 
